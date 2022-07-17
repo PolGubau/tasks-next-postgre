@@ -1,14 +1,14 @@
 import Head from "next/head";
 import {Task} from "src/interfaces/taks";
-
-import FormNewTask from "src/components/FormNewTask";
 import TasksGallery from "src/components/TasksGallery";
+import { useRouter } from "next/router";
 
 interface Props {
   tasks: Task[];
 }
 
 export default function Home({tasks}: Props) {
+  const router = useRouter()
   return (
     <>
         <Head>
@@ -21,9 +21,10 @@ export default function Home({tasks}: Props) {
   ? <h1>No hay tareas</h1> 
   : <TasksGallery tasks={tasks}></TasksGallery>}
   
-  <FormNewTask />
 </section>
-
+<p onClick={()=>{router.push('/new')}}>
+  Create a new one
+</p>
     </>
   );
 }

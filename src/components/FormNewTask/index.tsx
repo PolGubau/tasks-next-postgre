@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useRouter } from "next/router";
+import { useState, useEffect } from "react";
 import { Button, Card, Form, Icon } from "semantic-ui-react";
 import { Task } from "src/interfaces/taks";
 
 export default function FormNewTask() {
+  const router = useRouter();
   const [task, setTasks] = useState({
     title: "",
     description: "",
@@ -18,29 +20,54 @@ export default function FormNewTask() {
     });
   };
 
-  
-    const createTask=async (task: Task)=>{
-        await fetch ("http://localhost:3000/api/tasks", {
-            method: "POST",
-            headers:{
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(task),
-        })
-    }  
-    
-    
-    const handleSubmit = async(e:React.FormEvent<HTMLFormElement>)=>{
+  const createTask = async (task: Task) => {
+    await fetch("http://localhost:3000/api/tasks", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(task),
+    });
+  };
+  const updateTask = async (id: string, task: Task) => {
+    await fetch("http://localhost:3000/api/tasks" + id, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(task),
+    });
+  };
 
+  const loadTask = async (id: string) => {
+    await fetch("http://localhost:3000/api/tasks/" + id)
+      .then((res) => res.json())
+      .then((data) => {
+        setTasks({
+          title: data.title,
+          description: data.description,
+          status: data.status,
+        });
+      });
+  };
+
+  useEffect(() => {
+    if (typeof router.query.id === "string") loadTask(router.query.id);
+  }, [router.query]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     try {
-        e.preventDefault(); 
-        await createTask(task)
+      e.preventDefault();
+      if (typeof router.query.id === "string") {
+        await updateTask(router.query.id, task);
+      } else {
+        await createTask(task);
+      }
+      router.push("/");
+    } catch (error) {
+      console.log(error);
     }
-
-     catch (error) {
-        console.log(error)
-    } 
-    }
+  };
   return (
     <>
       <Card>
@@ -77,10 +104,16 @@ export default function FormNewTask() {
                   name="status"
                 />
               </Form.Field>
-              <Button type="submit">
-                <Icon name="save" />
-                Save
-              </Button>
+              {typeof router.query.id === "string" ? (
+                <Button type="submit" color="teal">
+                  Update
+                </Button>
+              ) : (
+                <Button type="submit" color="green">
+                  <Icon name="save" />
+                  Save
+                </Button>
+              )}
             </Form>
           </Card.Header>
         </Card.Content>
